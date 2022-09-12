@@ -20,7 +20,6 @@ TerminalController::TerminalController() {
 }
 
 TerminalController::~TerminalController() {
-    pthread_cancel(__a_.native_handle());
     KeyboardInput::getInstance()->stopCallback();
 }
 
@@ -219,11 +218,8 @@ void TerminalController::run() {
 
 
 void TerminalController::__aot_function() {
-    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);
-    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, nullptr);
-    
     auto __kb = KeyboardInput::getInstance();
-    while (true) {
+    while (__kb->isRunning()) {
 //        if (__kb->isKeyPressed(KEY_CODE_C)) {
 //            if (__is_running()) __cancel_();
 //        }
