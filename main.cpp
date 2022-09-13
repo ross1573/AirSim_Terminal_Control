@@ -1,5 +1,3 @@
-#define LOG_ENABLE
-
 #include "Controller/TerminalControl.h"
 
 

@@ -12,50 +12,60 @@
 
 #include "vehicles/multirotor/api/MultirotorRpcLibClient.hpp"
 
-using namespace msr;
-
 
 class __controller_base {
-    typedef airlib::MultirotorRpcLibClient _Cli;
-    typedef std::array<float, 3> _St;
-    typedef airlib::Vector3r _Vf;
+    typedef float _F;
+    typedef bool _B;
+    typedef std::array<_F, 3> _St;
+    typedef msr::airlib::MultirotorRpcLibClient _Cli;
+    typedef msr::airlib::Vector3r _Vec;
+    typedef msr::airlib::LidarData _Li;
+    typedef msr::airlib::ImuBase::Output _Imu;
+    typedef msr::airlib::BarometerBase::Output _Bar;
+    typedef msr::airlib::MagnetometerBase::Output _Mag;
+    typedef msr::airlib::GpsBase::Output _Gps;
+    typedef msr::airlib::DistanceSensorData _Dis;
+    typedef msr::airlib::DrivetrainType _Dri;
+    typedef msr::airlib::YawMode _Yaw;
     
 private:
-    _Cli __c_;
+    _Cli __cli_;
     _St __s_;
-    bool __r_;
+    _B __r_;
+    _B __c_;
     
 protected:
     __controller_base();
     ~__controller_base();
     
     void __confirm_connection();
-    void __wait_(bool __h = true);
+    void __wait_(_B __h = true);
     void __hover_();
     void __reset_();
     void __cancel_();
-    void __set_speed(float __s_h, float __s_v, float __s_y);
-    void __normalize_speed(float &__x, float &__y, float &__z, float &__r);
+    void __set_speed(_F __s_h, _F __s_v, _F __s_y);
+    void __normalize_speed(_F &__x, _F &__y, _F &__z, _F &__r);
     
     void __arm_();
     void __disarm_();
-    void __takeoff_(float __time = 10.0f, bool __sync = true);
-    void __land_(float __time = 10.0f, bool __sync = true);
-    void __home_(float __time = 60.0f, bool __sync = true);
-    void __stop_(float __dur);
-    void __rotate_(float __yaw, float __dur, bool __sync = true);
-    void __rotate_to(float __yaw, float __time = 10.0f, bool __sync = true);
-    void __move_(_Vf &&__v, float __dur, int __dri = 1, float __yaw = 0.0f, bool __sync = true);
-    void __move_to(_Vf &&__v, float __vel = 0.0f, bool __sync = true);
-    void __move_path(std::vector<_Vf> &__v, float __vel = 0.0f, float __time = 60.0f, bool __sync = true);
+    void __takeoff_(_F __time = 10.0f, _B __sync = true);
+    void __land_(_F __time = 10.0f, _B __sync = true);
+    void __home_(_F __time = 60.0f, _B __sync = true);
+    void __stop_(_F __dur);
+    void __rotate_(_F __yaw, _F __dur, _B __sync = true);
+    void __rotate_to(_F __yaw, _F __time = 10.0f, _B __sync = true);
+    void __move_(_Vec &&__v, _F __dur, int __dri = 1, _F __yaw = 0.0f, _B __sync = true);
+    void __move_to(_Vec &&__v, _F __vel = 0.0f, _B __sync = true);
+    void __move_path(std::vector<_Vec> &__v, _F __vel = 0.0f, _F __time = 60.0f, _B __sync = true);
     
-    inline bool __is_running();
-    inline airlib::LidarData __data_lidar();
-    inline airlib::ImuBase::Output __data_imu();
-    inline airlib::BarometerBase::Output __data_barometer();
-    inline airlib::MagnetometerBase::Output __data_magnet();
-    inline airlib::GpsBase::Output __data_gps();
-    inline airlib::DistanceSensorData __data_distance();
+    _B __is_running();
+    _B __is_connected();
+    _Li __data_lidar();
+    _Imu __data_imu();
+    _Bar __data_barometer();
+    _Mag __data_magnet();
+    _Gps __data_gps();
+    _Dis __data_distance();
 };
 
 #endif /* __CONTROLLER_BASE_H__ */

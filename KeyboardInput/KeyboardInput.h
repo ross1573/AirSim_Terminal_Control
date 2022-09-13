@@ -13,23 +13,28 @@
 #include <ApplicationServices/ApplicationServices.h>
 typedef __darwin_::KEY_CODE KEY_CODE;
 #elif _WIN32
+#define NOMINMAX
 #include <windows.h>
 typedef __win32_::KEY_CODE KEY_CODE;
 #endif
 
 
 class KeyboardInput {
-    typedef std::function<void(KEY_CODE)> _Fp;
-    typedef std::array<bool, 256> _Kt;
+    typedef KeyboardInput* _Ip;
+    typedef KEY_CODE _Key;
+    typedef std::function<void(_Key)> _Fp;
+    typedef std::array<bool, 256> _Arr;
     
 private:
-    static KeyboardInput* __i_;
+    static _Ip __i_;
     static _Fp __p_;
     static _Fp __r_;
-    static _Kt __k_;
+    static _Arr __k_;
     static bool __s_;
-    std::thread __t;
-#ifdef _WIN32
+    std::thread __t_;
+#ifdef __APPLE__
+    CFRunLoopRef __l_;
+#elif _WIN32
     HHOOK __h_;
     MSG __m_;
 #endif
@@ -39,16 +44,16 @@ private:
     ~KeyboardInput();
 
 public:
-    static KeyboardInput* getInstance();
+    static _Ip getInstance();
     
-    static KeyboardInput* setPressCallback(_Fp __f);
-    static KeyboardInput* setReleaseCallback(_Fp __f);
-    KeyboardInput* runCallback(bool __det = true);
-    KeyboardInput* stopCallback();
+    static _Ip setPressCallback(_Fp __f);
+    static _Ip setReleaseCallback(_Fp __f);
+    _Ip runCallback(bool __det = true);
+    _Ip stopCallback();
     
     static bool isRunning();
-    static bool isKeyPressed(KEY_CODE __key);
-    static bool isKeyReleased(KEY_CODE __key);
+    static bool isKeyPressed(_Key __key);
+    static bool isKeyReleased(_Key __key);
     
 private:
 #ifdef __APPLE__

@@ -4,38 +4,41 @@
 __controller_base::__controller_base() {
     __s_ = { 1.0f, 1.0f, 30.0f };
     __r_ = false;
+    __c_ = false;
 }
 
 __controller_base::~__controller_base() {
-    __c_.enableApiControl(false);
+    __cli_.enableApiControl(false);
 }
 
 
 void __controller_base::__confirm_connection() {
-    __c_.confirmConnection();
-    __c_.enableApiControl(true);
+    __cli_.confirmConnection();
+    __cli_.enableApiControl(true);
+    __c_ = true;
 }
 
 void __controller_base::__wait_(bool __h) {
-    __c_.waitOnLastTask();
+    __cli_.waitOnLastTask();
     if (__h) __hover_();
     __r_ = false;
 }
 
 void __controller_base::__hover_() {
     __r_ = true;
-    __c_.hoverAsync()->waitOnLastTask();
+    __cli_.hoverAsync()->waitOnLastTask();
     __r_ = false;
 }
 
 void __controller_base::__reset_() {
-    __c_.reset();
+    __cli_.reset();
+    __c_ = false;
     __confirm_connection();
     __r_ = false;
 }
 
 void __controller_base::__cancel_() {
-    if (__r_) __c_.cancelLastTask();
+    if (__r_) __cli_.cancelLastTask();
     __hover_();
     __r_ = false;
 }
@@ -60,23 +63,19 @@ void __controller_base::__normalize_speed(float &__x, float &__y, float &__z, fl
     else if (__r < 0.0f) __r = -__s_[2];
 }
 
-bool __controller_base::__is_running() {
-    return __r_;
-}
-
 
 void __controller_base::__arm_() {
 #ifndef DISABLE_LOG
     std::cout << "Arm executed\n\n";
 #endif
-    __c_.armDisarm(true);
+    __cli_.armDisarm(true);
 }
 
 void __controller_base::__disarm_() {
 #ifndef DISABLE_LOG
     std::cout << "Disarm executed\n\n";
 #endif
-    __c_.armDisarm(false);
+    __cli_.armDisarm(false);
 }
 
 void __controller_base::__takeoff_(float __time, bool __sync) {
@@ -85,7 +84,7 @@ void __controller_base::__takeoff_(float __time, bool __sync) {
         << "Timeout : " << __time << "\n\n";
 #endif
     __r_ = true;
-    __c_.takeoffAsync(__time);
+    __cli_.takeoffAsync(__time);
     if (__sync) __wait_();
 }
 
@@ -95,7 +94,7 @@ void __controller_base::__land_(float __time, bool __sync) {
         << "Timeout : " << __time << "\n\n";
 #endif
     __r_ = true;
-    __c_.landAsync(__time);
+    __cli_.landAsync(__time);
     if (__sync) __wait_();
 }
 
@@ -105,7 +104,7 @@ void __controller_base::__home_(float __time, bool __sync) {
         << "Timeout : " << __time << "\n\n";
 #endif
     __r_ = true;
-    __c_.goHomeAsync(__time);
+    __cli_.goHomeAsync(__time);
     if (__sync) __wait_();
 }
 
@@ -121,7 +120,7 @@ void __controller_base::__rotate_(float __yaw, float __dur, bool __sync) {
         << "Duration : " << __dur << "\n\n";
 #endif
     __r_ = true;
-    __c_.rotateByYawRateAsync(__yaw, __dur);
+    __cli_.rotateByYawRateAsync(__yaw, __dur);
     if (__sync) __wait_();
 }
 
@@ -132,11 +131,11 @@ void __controller_base::__rotate_to(float __yaw, float __time, bool __sync) {
         << "Timeout : " << __time << "\n\n";
 #endif
     __r_ = true;
-    __c_.rotateToYawAsync(__yaw, __time);
+    __cli_.rotateToYawAsync(__yaw, __time);
     if (__sync) __wait_();
 }
 
-void __controller_base::__move_(_Vf &&__v, float __dur, int __dri, float __yaw, bool __sync) {
+void __controller_base::__move_(_Vec &&__v, float __dur, int __dri, float __yaw, bool __sync) {
     __normalize_speed(__v[0], __v[1], __v[2], __yaw);
 #ifndef DISABLE_LOG
     if (std::pow(__v[0], 2) + std::pow(__v[1], 2) + std::pow(__v[2], 2) + std::pow(__yaw, 2) > 0.01f) {
@@ -148,19 +147,19 @@ void __controller_base::__move_(_Vf &&__v, float __dur, int __dri, float __yaw, 
     }
 #endif
     __r_ = true;
-//    __c_.moveByVelocityZAsync(__x, __y, __z, __dur, (airlib::DrivetrainType)__dri, airlib::YawMode(true, __yaw));
-    __c_.moveByVelocityAsync(__v[0], __v[1], __v[2], __dur, (airlib::DrivetrainType)__dri, airlib::YawMode(true, __yaw));
+//    __c_.moveByVelocityZAsync(__x, __y, __z, __dur, (_Dri)__dri, _Yaw(true, __yaw));
+    __cli_.moveByVelocityAsync(__v[0], __v[1], __v[2], __dur, (_Dri)__dri, _Yaw(true, __yaw));
     if (__sync) __wait_();
 }
 
-void __controller_base::__move_to(_Vf &&__v, float __vel, bool __sync) {
+void __controller_base::__move_to(_Vec &&__v, float __vel, bool __sync) {
     if (__v[2] < 0.0f) {
 #ifndef DISABLE_LOG
         std::cout << "Invalid arguments\n\n";
 #endif
         return;
     }
-    auto __p = __c_.getMultirotorState().getPosition();
+    auto __p = __cli_.getMultirotorState().getPosition();
     if (!__vel) __vel = __s_[0];
     
 #ifndef DISABLE_LOG
@@ -171,15 +170,15 @@ void __controller_base::__move_to(_Vf &&__v, float __vel, bool __sync) {
         << "Velocity : " << __vel << std::endl << std::endl;
 #endif
     __r_ = true;
-    __c_.moveToPositionAsync(__v[0], __v[1], -__v[2], __vel);
+    __cli_.moveToPositionAsync(__v[0], __v[1], -__v[2], __vel);
     if (__sync) __wait_();
 }
 
-void __controller_base::__move_path(std::vector<_Vf> &__v, float __vel, float __time, bool __sync) {
+void __controller_base::__move_path(std::vector<_Vec> &__v, float __vel, float __time, bool __sync) {
     if (!__vel) __vel = __s_[0];
     for (auto &ele : __v) ele[2] *= -1;
     __r_ = true;
-    __c_.moveOnPathAsync(__v, __vel, __time, (airlib::DrivetrainType)1, airlib::YawMode(false, 0));
+    __cli_.moveOnPathAsync(__v, __vel, __time, (_Dri)1, _Yaw(false, 0));
     
 #ifndef DISABLE_LOG
     std::cout << "MovePath executed" << std::endl << "Path : \t";
@@ -194,38 +193,46 @@ void __controller_base::__move_path(std::vector<_Vf> &__v, float __vel, float __
 }
 
 
-airlib::LidarData __controller_base::__data_lidar() {
-    auto __d = __c_.getLidarData();
+bool __controller_base::__is_running() {
+    return __r_;
+}
+
+bool __controller_base::__is_connected() {
+    return __c_;
+}
+
+__controller_base::_Li __controller_base::__data_lidar() {
+    auto __d = __cli_.getLidarData();
     
     return __d;
 }
 
-airlib::ImuBase::Output __controller_base::__data_imu() {
-    auto __d = __c_.getImuData();
+__controller_base::_Imu __controller_base::__data_imu() {
+    auto __d = __cli_.getImuData();
     
     return __d;
 }
 
-airlib::BarometerBase::Output __controller_base::__data_barometer() {
-    auto __d = __c_.getBarometerData();
+__controller_base::_Bar __controller_base::__data_barometer() {
+    auto __d = __cli_.getBarometerData();
     
     return __d;
 }
 
-airlib::MagnetometerBase::Output __controller_base::__data_magnet() {
-    auto __d = __c_.getMagnetometerData();
+__controller_base::_Mag __controller_base::__data_magnet() {
+    auto __d = __cli_.getMagnetometerData();
     
     return __d;
 }
 
-airlib::GpsBase::Output __controller_base::__data_gps() {
-    auto __d = __c_.getGpsData();
+__controller_base::_Gps __controller_base::__data_gps() {
+    auto __d = __cli_.getGpsData();
     
     return __d;
 }
 
-airlib::DistanceSensorData __controller_base::__data_distance() {
-    auto __d = __c_.getDistanceSensorData();
+__controller_base::_Dis __controller_base::__data_distance() {
+    auto __d = __cli_.getDistanceSensorData();
     
     return __d;
 }

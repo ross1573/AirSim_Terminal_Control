@@ -116,19 +116,19 @@ void TerminalController::move(_Arg &__str) {
         case 4: if (__to_upper(__str[1]) == "PATH") movePath(__str); break;
         case 5: if (__to_upper(__str[1]) == "PATH") movePath(__str);
                 else if (__to_upper(__str[1]) == "TO") moveTo(__str);
-                else __move_({atof(__str[1].c_str()),
+                else __move_(_Vec(atof(__str[1].c_str()),
                              atof(__str[2].c_str()),
-                             atof(__str[3].c_str())},
+                             atof(__str[3].c_str())),
                              atof(__str[4].c_str())); break;
         case 6: if (__to_upper(__str[1]) == "TO") moveTo(__str);
-                else __move_({atof(__str[1].c_str()),
+                else __move_(_Vec(atof(__str[1].c_str()),
                              atof(__str[2].c_str()),
-                             atof(__str[3].c_str())},
+                             atof(__str[3].c_str())),
                              atof(__str[4].c_str()),
                              atoi(__str[5].c_str())); break;
-        case 7: __move_({atof(__str[1].c_str()),
+        case 7: __move_(_Vec(atof(__str[1].c_str()),
                         atof(__str[2].c_str()),
-                        atof(__str[3].c_str())},
+                        atof(__str[3].c_str())),
                         atof(__str[4].c_str()),
                         atoi(__str[5].c_str()),
                         atoi(__str[6].c_str())); break;
@@ -138,24 +138,24 @@ void TerminalController::move(_Arg &__str) {
 
 void TerminalController::moveTo(_Arg &__str) {
     switch (__str.size()) {
-        case 5: __move_to({atof(__str[2].c_str()),
+        case 5: __move_to(_Vec(atof(__str[2].c_str()),
                           atof(__str[3].c_str()),
-                          atof(__str[4].c_str())}); break;
-        case 6: __move_to({atof(__str[2].c_str()),
+                          atof(__str[4].c_str()))); break;
+        case 6: __move_to(_Vec(atof(__str[2].c_str()),
                           atof(__str[3].c_str()),
-                          atof(__str[4].c_str())},
+                          atof(__str[4].c_str())),
                           atof(__str[5].c_str())); break;
         default: std::cerr << "Invalid arguments" << std::endl << std::endl;
     }
 }
 
 void TerminalController::movePath(_Arg &__str) {
-    std::string __f_p(getcwd(NULL, 0));
+    std::string __f_p(std::filesystem::current_path().string());
     __f_p.append("/").append(__str[2]);
-    std::ifstream __f(__f_p);
-    std::vector<airlib::Vector3r> __p;
+    std::vector<_Vec> __p;
     std::string __buf, __buf_n;
-    airlib::Vector3r __v;
+    _Vec __v;
+    std::ifstream __f(__f_p);
     
     if (!__f) {
         std::cerr << "Failed to open file, " << __str[2] << "\n"
@@ -177,6 +177,7 @@ void TerminalController::movePath(_Arg &__str) {
         __p.push_back(__v);
     }
     std::cout << "Reading complete" << std::endl;
+    __f.close();
     
     switch (__str.size()) {
         case 3: __move_path(__p); break;
@@ -224,7 +225,11 @@ void TerminalController::__aot_function() {
 //            if (__is_running()) __cancel_();
 //        }
         if (__kb->isKeyPressed(KEY_CODE::KEY_CODE_R) &&
-            __kb->isKeyPressed(KEY_CODE::KEY_CODE_T)) __reset_();
+            __kb->isKeyPressed(KEY_CODE::KEY_CODE_T) &&
+            __is_connected()) {
+            __reset_();
+            std::this_thread::sleep_for(std::chrono::duration<float>(1.0f));
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }

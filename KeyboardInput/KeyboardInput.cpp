@@ -1,10 +1,10 @@
 #include "KeyboardInput.h"
 
 
-KeyboardInput* KeyboardInput::__i_ = nullptr;
+KeyboardInput::_Ip KeyboardInput::__i_ = nullptr;
 KeyboardInput::_Fp KeyboardInput::__p_ = nullptr;
 KeyboardInput::_Fp KeyboardInput::__r_ = nullptr;
-KeyboardInput::_Kt KeyboardInput::__k_;
+KeyboardInput::_Arr KeyboardInput::__k_;
 bool KeyboardInput::__s_ = false;
 
 
@@ -20,42 +20,42 @@ KeyboardInput::~KeyboardInput() {
     }
 }
 
-KeyboardInput* KeyboardInput::getInstance() {
+KeyboardInput::_Ip KeyboardInput::getInstance() {
     if (!__i_) __i_ = new KeyboardInput();
     return __i_;
 }
 
 
-KeyboardInput* KeyboardInput::runCallback(bool __det) {
+KeyboardInput::_Ip KeyboardInput::runCallback(bool __det) {
 #ifdef __APPLE__
-    __t = std::thread(&KeyboardInput::__init_darwin, __i_);
+    __t_ = std::thread(&KeyboardInput::__init_darwin, __i_);
 #elif _WIN32
-    __t = std::thread(&KeyboardInput::__init_win32, __i_);
+    __t_ = std::thread(&KeyboardInput::__init_win32, __i_);
 #endif
     __s_ = true;
-    if (__det) __t.detach();
-    else __t.join();
+    if (__det) __t_.detach();
+    else __t_.join();
     return __i_;
 }
 
-KeyboardInput* KeyboardInput::setPressCallback(_Fp __p) {
+KeyboardInput::_Ip KeyboardInput::setPressCallback(_Fp __p) {
     getInstance()->__p_ = __p;
     return __i_;
 }
 
-KeyboardInput* KeyboardInput::setReleaseCallback(_Fp __f) {
+KeyboardInput::_Ip KeyboardInput::setReleaseCallback(_Fp __f) {
     getInstance()->__r_ = __f;
     return __i_;
 }
 
 
-KeyboardInput* KeyboardInput::stopCallback() {
+KeyboardInput::_Ip KeyboardInput::stopCallback() {
+    if (!__s_) return __i_;
 #ifdef __APPLE__
-    CFRunLoopStop(CFRunLoopGetCurrent());
-    pthread_cancel(__t.native_handle());
+    CFRunLoopStop(__l_);
 #endif
     __s_ = false;
-    return getInstance();
+    return __i_;
 }
 
 
@@ -63,19 +63,17 @@ bool KeyboardInput::isRunning() {
     return __s_;
 }
 
-bool KeyboardInput::isKeyPressed(KEY_CODE __key) {
+bool KeyboardInput::isKeyPressed(_Key __key) {
     return __k_[__key];
 }
 
-bool KeyboardInput::isKeyReleased(KEY_CODE __key) {
+bool KeyboardInput::isKeyReleased(_Key __key) {
     return !__k_[__key];
 }
 
 
 #ifdef __APPLE__
 void KeyboardInput::__init_darwin() {
-    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);
-    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, nullptr);
     CFMachPortRef __e = CGEventTapCreate(kCGSessionEventTap,
                                          kCGHeadInsertEventTap,
                                          kCGEventTapOptionDefault,
@@ -88,8 +86,9 @@ void KeyboardInput::__init_darwin() {
         exit(1);
     }
     
+    __l_ = CFRunLoopGetCurrent();
     CFRunLoopSourceRef __l = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, __e, 0);
-    CFRunLoopAddSource(CFRunLoopGetCurrent(), __l, kCFRunLoopCommonModes);
+    CFRunLoopAddSource(__l_, __l, kCFRunLoopCommonModes);
     CGEventTapEnable(__e, true);
     CFRunLoopRun();
 }
@@ -107,6 +106,7 @@ CGEventRef KeyboardInput::__callback_darwin(CGEventTapProxy __p, CGEventType __t
     }
     return __e;
 }
+
 #elif _WIN32
 void KeyboardInput::__init_win32() {
     __h_ = SetWindowsHookEx(WH_KEYBOARD_LL, &KeyboardInput::__callback_win32, NULL, 0);

@@ -10,8 +10,9 @@
 #include <functional>
 #include <thread>
 #include <chrono>
+#include <filesystem>
 
-#include "KeyboardInput.h"
+#include "../KeyboardInput/KeyboardInput.h"
 #include "ControllerBase.h"
 
 
@@ -19,6 +20,7 @@ class TerminalController : private __controller_base {
     typedef std::vector<std::string> _Arg;
     typedef std::function<void(_Arg&)> _Fp;
     typedef std::map<std::string, _Fp> _Fm;
+    typedef msr::airlib::Vector3r _Vec;
     
 private:
     std::thread __a_;
