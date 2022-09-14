@@ -4,7 +4,7 @@ Terminal controller for AirSim drone, including free movement (W,A,S,D...)
 
 ## Supporting OS
 * macOS
-* ~~Windows(Testing)~~
+* Windows
 
 ## Commands
 * speed [ horizontal, vertical, yaw ]
