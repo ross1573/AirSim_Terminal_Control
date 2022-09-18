@@ -11,11 +11,11 @@
 
 #ifdef  __APPLE__
 #include <ApplicationServices/ApplicationServices.h>
-typedef __darwin_::KEY_CODE KEY_CODE;
+typedef __darwin_::__key_code KEY_CODE;
 #elif _WIN32
 #define NOMINMAX
 #include <windows.h>
-typedef __win32_::KEY_CODE KEY_CODE;
+typedef __win32_::__key_code KEY_CODE;
 #endif
 
 
@@ -23,7 +23,7 @@ class KeyboardInput {
     typedef KeyboardInput* _Ip;
     typedef KEY_CODE _Key;
     typedef std::function<void(_Key)> _Fp;
-    typedef std::array<bool, 256> _Arr;
+    typedef std::array<bool, KEY_CODE_SIZE> _Arr;
     
 private:
     static _Ip __i_;
@@ -45,6 +45,7 @@ private:
 
 public:
     static _Ip getInstance();
+    static void reset(_Key __key = KEY_CODE::KEY_CODE_NULL);
     
     static _Ip setPressCallback(_Fp __f);
     static _Ip setReleaseCallback(_Fp __f);

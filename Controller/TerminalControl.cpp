@@ -41,7 +41,7 @@ void TerminalController::setSpeed(_Arg &__str) {
                 case 'R': __set_speed(-1, -1, atof(__str[2].c_str()));
                 default: std::cerr << "Invalid arguments" << std::endl << std::endl;
             }
-        case 4: __set_speed(atof(__str[1].c_str()), atof(__str[2].c_str()), atof(__str[3].c_str()));
+        case 4: __set_speed(atof(__str[1].c_str()), atof(__str[2].c_str()), atof(__str[3].c_str())); break;
         default: std::cerr << "Invalid arguments" << std::endl << std::endl;
     }
 }
@@ -64,7 +64,7 @@ void TerminalController::keyboard(_Arg &__str) {
         if (__k->isKeyPressed(KEY_CODE::KEY_CODE_E)) __d[3] =  0.5f;
         if (__k->isKeyPressed(KEY_CODE::KEY_CODE_F)) break;
         __move_({__d[0], __d[1], __d[2]}, 0.1, 1, __d[3], 0);
-        __wait_(false);
+        __wait_(0.1, false);
     }
     __hover_();
 }
@@ -132,7 +132,7 @@ void TerminalController::move(_Arg &__str) {
                         atof(__str[4].c_str()),
                         atoi(__str[5].c_str()),
                         atoi(__str[6].c_str())); break;
-        default: std::cerr << "Invalid arguments\n\n";
+        default: std::cout << "Invalid arguments\n\n";
     }
 }
 
@@ -145,7 +145,7 @@ void TerminalController::moveTo(_Arg &__str) {
                           atof(__str[3].c_str()),
                           atof(__str[4].c_str())),
                           atof(__str[5].c_str())); break;
-        default: std::cerr << "Invalid arguments" << std::endl << std::endl;
+        default: std::cout << "Invalid arguments\n\n";
     }
 }
 
@@ -189,6 +189,9 @@ void TerminalController::movePath(_Arg &__str) {
 
 
 std::string TerminalController::action(std::string &__str) {
+    if (__is_running()) {
+        std::cout << "Drone is still working on privious task" << std::endl;
+    }
     if (__str.empty()) return __str;
     std::istringstream __ss(__str);
     std::string __buf;
@@ -211,6 +214,9 @@ std::string TerminalController::action(std::string &__str) {
 void TerminalController::run() {
     std::string __op;
     while (__op != "EXIT") {
+        while (!__is_connected()) {
+            std::this_thread::sleep_for(std::chrono::duration<float>(1.0f));
+        }
         std::cout << "COMMAND > ";
         std::getline(std::cin, __op);
         __op = action(__op);
@@ -228,7 +234,7 @@ void TerminalController::__aot_function() {
             __kb->isKeyPressed(KEY_CODE::KEY_CODE_T) &&
             __is_connected()) {
             __reset_();
-            std::this_thread::sleep_for(std::chrono::duration<float>(1.0f));
+            __kb->reset();
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }

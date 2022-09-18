@@ -39,8 +39,8 @@ protected:
     ~__controller_base();
     
     void __confirm_connection();
-    void __wait_(_B __h = true);
-    void __hover_();
+    void __wait_(_F __dur, _B __h = true);
+    void __hover_(_B __s = true);
     void __reset_();
     void __cancel_();
     void __set_speed(_F __s_h, _F __s_v, _F __s_y);
@@ -53,7 +53,7 @@ protected:
     void __home_(_F __time = 60.0f, _B __sync = true);
     void __stop_(_F __dur);
     void __rotate_(_F __yaw, _F __dur, _B __sync = true);
-    void __rotate_to(_F __yaw, _F __time = 10.0f, _B __sync = true);
+    void __rotate_to(_F __deg, _F __time = 10.0f, _B __sync = true);
     void __move_(_Vec &&__v, _F __dur, int __dri = 1, _F __yaw = 0.0f, _B __sync = true);
     void __move_to(_Vec &&__v, _F __vel = 0.0f, _B __sync = true);
     void __move_path(std::vector<_Vec> &__v, _F __vel = 0.0f, _F __time = 60.0f, _B __sync = true);

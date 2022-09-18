@@ -18,28 +18,29 @@ void __controller_base::__confirm_connection() {
     __c_ = true;
 }
 
-void __controller_base::__wait_(bool __h) {
-    __cli_.waitOnLastTask();
+void __controller_base::__wait_(float __dur, bool __h) {
+    __cli_.waitOnLastTask(nullptr, __dur);
     if (__h) __hover_();
     __r_ = false;
 }
 
-void __controller_base::__hover_() {
+void __controller_base::__hover_(_B __s) {
     __r_ = true;
     __cli_.hoverAsync()->waitOnLastTask();
+    if (__s) __cli_.moveByVelocityAsync(0,0,0, std::numeric_limits<float>::max());
     __r_ = false;
 }
 
 void __controller_base::__reset_() {
     __cli_.reset();
     __c_ = false;
-    __confirm_connection();
     __r_ = false;
+    __confirm_connection();
 }
 
 void __controller_base::__cancel_() {
-    if (__r_) __cli_.cancelLastTask();
-    __hover_();
+    __cli_.cancelLastTask();
+    __hover_(false);
     __r_ = false;
 }
 
@@ -85,7 +86,7 @@ void __controller_base::__takeoff_(float __time, bool __sync) {
 #endif
     __r_ = true;
     __cli_.takeoffAsync(__time);
-    if (__sync) __wait_();
+    if (__sync) __wait_(__time);
 }
 
 void __controller_base::__land_(float __time, bool __sync) {
@@ -95,7 +96,7 @@ void __controller_base::__land_(float __time, bool __sync) {
 #endif
     __r_ = true;
     __cli_.landAsync(__time);
-    if (__sync) __wait_();
+    if (__sync) __wait_(__time);
 }
 
 void __controller_base::__home_(float __time, bool __sync) {
@@ -105,7 +106,7 @@ void __controller_base::__home_(float __time, bool __sync) {
 #endif
     __r_ = true;
     __cli_.goHomeAsync(__time);
-    if (__sync) __wait_();
+    if (__sync) __wait_(__time);
 }
 
 void __controller_base::__stop_(float __dur) {
@@ -121,18 +122,18 @@ void __controller_base::__rotate_(float __yaw, float __dur, bool __sync) {
 #endif
     __r_ = true;
     __cli_.rotateByYawRateAsync(__yaw, __dur);
-    if (__sync) __wait_();
+    if (__sync) __wait_(__dur);
 }
 
-void __controller_base::__rotate_to(float __yaw, float __time, bool __sync) {
+void __controller_base::__rotate_to(float __deg, float __time, bool __sync) {
 #ifndef DISABLE_LOG
     std::cout << "Rotate executed" << std::endl
-        << "Yaw : " << __yaw << std::endl
+        << "Degree : " << __deg << std::endl
         << "Timeout : " << __time << "\n\n";
 #endif
     __r_ = true;
-    __cli_.rotateToYawAsync(__yaw, __time);
-    if (__sync) __wait_();
+    __cli_.rotateToYawAsync(__deg, __time);
+    if (__sync) __wait_(__time);
 }
 
 void __controller_base::__move_(_Vec &&__v, float __dur, int __dri, float __yaw, bool __sync) {
@@ -147,9 +148,11 @@ void __controller_base::__move_(_Vec &&__v, float __dur, int __dri, float __yaw,
     }
 #endif
     __r_ = true;
-//    __c_.moveByVelocityZAsync(__x, __y, __z, __dur, (_Dri)__dri, _Yaw(true, __yaw));
-    __cli_.moveByVelocityAsync(__v[0], __v[1], __v[2], __dur, (_Dri)__dri, _Yaw(true, __yaw));
-    if (__sync) __wait_();
+//    __cli_.moveByRollPitchYawZAsync(__v[0], __v[1], __v[2], -1.0f, __dur);
+//    __cli_.moveByRollPitchYawrateZAsync(__v[0], __v[1], __v[2], -1.0f, __dur);
+//    __cli_.moveByVelocityAsync(__v[0], __v[1], __v[2], __dur, (_Dri)__dri, _Yaw(true, __yaw));
+    __cli_.moveByVelocityBodyFrameAsync(__v[0], __v[1], __v[2], __dur, (_Dri)__dri, _Yaw(true, __yaw));
+    if (__sync) __wait_(__dur);
 }
 
 void __controller_base::__move_to(_Vec &&__v, float __vel, bool __sync) {
@@ -169,9 +172,10 @@ void __controller_base::__move_to(_Vec &&__v, float __vel, bool __sync) {
         << "Z : " << -__p.z() << " > " << __v[2] << std::endl
         << "Velocity : " << __vel << std::endl << std::endl;
 #endif
+    
     __r_ = true;
     __cli_.moveToPositionAsync(__v[0], __v[1], -__v[2], __vel);
-    if (__sync) __wait_();
+    if (__sync) __wait_(std::numeric_limits<float>::max());
 }
 
 void __controller_base::__move_path(std::vector<_Vec> &__v, float __vel, float __time, bool __sync) {
@@ -189,7 +193,7 @@ void __controller_base::__move_path(std::vector<_Vec> &__v, float __vel, float _
     }
     std::cout << std::endl;
 #endif
-    if (__sync) __wait_();
+    if (__sync) __wait_(__time);
 }
 
 

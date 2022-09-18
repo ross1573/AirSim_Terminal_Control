@@ -25,6 +25,11 @@ KeyboardInput::_Ip KeyboardInput::getInstance() {
     return __i_;
 }
 
+void KeyboardInput::reset(_Key __key) {
+    if (__key == KEY_CODE::KEY_CODE_NULL) __k_.fill(false);
+    else __k_[__key] = false;
+}
+
 
 KeyboardInput::_Ip KeyboardInput::runCallback(bool __det) {
 #ifdef __APPLE__

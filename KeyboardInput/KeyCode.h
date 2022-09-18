@@ -1,8 +1,11 @@
 #ifndef __KEYCODE_H__
 #define __KEYCODE_H__
 
+
+static constexpr const int& KEY_CODE_SIZE = 256;
+
 namespace __darwin_ {
-enum KEY_CODE {
+enum __key_code {
     KEY_CODE_A              =   0,
     KEY_CODE_S              =   1,
     KEY_CODE_D              =   2,
@@ -49,11 +52,12 @@ enum KEY_CODE {
     KEY_CODE_LEFT           = 123,
     KEY_CODE_RIGHT          = 124,
     KEY_CODE_DOWN           = 125,
-    KEY_CODE_UP             = 126
+    KEY_CODE_UP             = 126,
+    KEY_CODE_NULL           = KEY_CODE_SIZE
 };}
 
 namespace __win32_ {
-enum KEY_CODE {
+enum __key_code {
     KEY_CODE_BACKSPACE      =   8,
     KEY_CODE_TAB            =   9,
     KEY_CODE_ENTER          =  13,
@@ -100,7 +104,8 @@ enum KEY_CODE {
     KEY_CODE_W              =  87,
     KEY_CODE_X              =  88,
     KEY_CODE_Y              =  89,
-    KEY_CODE_Z              =  90
+    KEY_CODE_Z              =  90,
+    KEY_CODE_NULL           = KEY_CODE_SIZE
 };}
 
 #endif /* __KEYCODE_H__ */
