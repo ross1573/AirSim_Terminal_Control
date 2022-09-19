@@ -8,6 +8,7 @@ __controller_base::__controller_base() {
 }
 
 __controller_base::~__controller_base() {
+    __cancel_();
     __cli_.enableApiControl(false);
 }
 
