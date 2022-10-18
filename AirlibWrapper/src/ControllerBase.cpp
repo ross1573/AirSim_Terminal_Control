@@ -119,7 +119,10 @@ void airlib_wrapper::__controller_base::rotate(float __yaw, float __dur, bool __
         << "Duration : " << __dur << "\n\n";
 #endif
     __r_ = true;
-    __cli_as.rotateByYawRateAsync(__yaw, __dur);
+    float __yaw_cal = 0.0f;
+    if (__yaw > 0.0f) __yaw_cal = __s_[2];
+    else if (__yaw < 0.0f) __yaw_cal = -__s_[2];
+    __cli_as.rotateByYawRateAsync(__yaw_cal, __dur);
     if (__sync) wait(__dur);
 }
 

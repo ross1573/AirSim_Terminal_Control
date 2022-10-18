@@ -34,23 +34,16 @@ _Rpc::client::client(_Str __ip, int __port) {
     std::cout << "\nConnected to server" << std::endl;
 }
 
-
-void signal_handler(int sig) {
-    std::cout << "\nPress Enter to exit" << std::endl;
-    std::istringstream iss("EXIT\n");
-    std::cin.rdbuf(iss.rdbuf());
-}
-
-void set_signal_handler() {
-    std::signal(SIGINT, signal_handler);
-    std::signal(SIGABRT, signal_handler);
+void set_signal_handler(std::function<void(int)> __f) {
+    std::signal(SIGINT, __f.target<void(int)>());
+    std::signal(SIGABRT, __f.target<void(int)>());
 #ifdef __APPLE__ 
-    std::signal(SIGSTOP, signal_handler);
-    std::signal(SIGQUIT, signal_handler);
-    std::signal(SIGKILL, signal_handler);
-    std::signal(SIGTSTP, signal_handler);
+    std::signal(SIGSTOP, __f.target<void(int)>());
+    std::signal(SIGQUIT, __f.target<void(int)>());
+    std::signal(SIGKILL, __f.target<void(int)>());
+    std::signal(SIGTSTP, __f.target<void(int)>());
 #elif _WIN32
-    std::signal(SIGBREAK, signal_handler);
+    //std::signal(SIGBREAK, __f.target<void(int)>());
 #endif
 }
 

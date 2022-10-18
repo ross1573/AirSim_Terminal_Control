@@ -54,8 +54,7 @@ struct _Rpc {
 };
 
 
-void signal_handler(int sig);
-void set_signal_handler();
+void set_signal_handler(std::function<void(int)> __f);
 void thread_sleep(float __s);
 void thread_sleep(int __ms);
 std::string to_upper(const std::string &__str);

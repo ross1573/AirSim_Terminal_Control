@@ -17,7 +17,7 @@ void airlib_wrapper::__sensor_base::confirm_connection() {
 }
 
 
-airlib_wrapper::__sensor_base::_Li airlib_wrapper::__sensor_base::lidar() {
+airlib_wrapper::__sensor_base::_Lid airlib_wrapper::__sensor_base::lidar() {
     return __cli_as.getLidarData();
 }
 
@@ -39,4 +39,8 @@ airlib_wrapper::__sensor_base::_Gps airlib_wrapper::__sensor_base::gps() {
 
 airlib_wrapper::__sensor_base::_Dis airlib_wrapper::__sensor_base::distance() {
     return __cli_as.getDistanceSensorData();
+}
+
+airlib_wrapper::__sensor_base::_Sta airlib_wrapper::__sensor_base::state() {
+    return __cli_as.getMultirotorState();
 }

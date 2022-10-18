@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <array>
+#include <functional>
 
 #include "vehicles/multirotor/api/MultirotorRpcLibClient.hpp"
 

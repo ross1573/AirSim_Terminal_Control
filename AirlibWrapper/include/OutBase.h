@@ -6,14 +6,15 @@
 
 namespace airlib_wrapper {
     class __sensor_base {
-        typedef msr::airlib::MultirotorRpcLibClient _Cli;
-        typedef msr::airlib::Vector3r _Vec;
-        typedef msr::airlib::LidarData _Li;
-        typedef msr::airlib::ImuBase::Output _Imu;
-        typedef msr::airlib::BarometerBase::Output _Bar;
-        typedef msr::airlib::MagnetometerBase::Output _Mag;
-        typedef msr::airlib::GpsBase::Output _Gps;
-        typedef msr::airlib::DistanceSensorData _Dis;
+        typedef msr::airlib::MultirotorRpcLibClient     _Cli;
+        typedef msr::airlib::Vector3r                   _Vec;
+        typedef msr::airlib::LidarData                  _Lid;
+        typedef msr::airlib::ImuBase::Output            _Imu;
+        typedef msr::airlib::BarometerBase::Output      _Bar;
+        typedef msr::airlib::MagnetometerBase::Output   _Mag;
+        typedef msr::airlib::GpsBase::Output            _Gps;
+        typedef msr::airlib::DistanceSensorData         _Dis;
+        typedef msr::airlib::MultirotorState            _Sta;
         
     private:
         _Cli __cli_as;
@@ -24,12 +25,13 @@ namespace airlib_wrapper {
         
         void confirm_connection();
         
-        _Li lidar();
+        _Lid lidar();
         _Imu imu();
         _Bar barometer();
         _Mag magnetometer();
         _Gps gps();
         _Dis distance();
+        _Sta state();
     };
 }
 

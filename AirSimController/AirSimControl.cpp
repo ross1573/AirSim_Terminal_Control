@@ -1,8 +1,18 @@
 #include "AirSimControl.h"
 
 
-AirSimController::AirSimController(_Str __in, int __port)
-: _Rpc::server(__in, __port) {
+void signal_handler(int sig) {
+    std::cout.rdbuf(AirSimController::buf_bak);
+    std::cout << "\nPress Enter to exit" << std::endl;
+    std::istringstream iss("EXIT\n");
+    std::cin.rdbuf(iss.rdbuf());
+}
+
+
+AirSimController::_Buf AirSimController::buf_bak = nullptr;
+
+AirSimController::AirSimController(_Str __ip, int __port)
+: _Rpc::server(__ip, __port) {
     __a_ = std::thread(&AirSimController::__background_function, this);
     __a_.detach();
     
@@ -15,15 +25,21 @@ AirSimController::AirSimController(_Str __in, int __port)
     __f_.INSERT("HOME",         &AirSimController::home       );
     __f_.INSERT("MOVE",         &AirSimController::move       );
     __f_.INSERT("ROTATE",       &AirSimController::rotate     );
+    __f_.INSERT("HOVER",        &AirSimController::hover      );
     
-    if (__in == "stdin") {
+    if (__ip == "stdin") {
         __i_ = _In::STDIN;
-        set_signal_handler();
     }
     else {
+        typedef std::function<bool()> _BgF;
+        __r_.store(false);
         __i_ = _In::RPC;
+        buf_bak = std::cout.rdbuf();
         std::cout.rdbuf(__o_.rdbuf());
-        __srv_->bind("str_cmd", _Rpc::_Fp(BIND(&AirSimController::__message_callback)));
+        set_signal_handler(signal_handler);
+        
+        __srv_->bind("str_cmd", _Rpc::_Fp(BIND_1(&AirSimController::__message_callback)));
+        __srv_->bind("bg_func", _BgF(BIND(&AirSimController::__background_callback)));
         __srv_->async_run();
     }
 }
@@ -31,8 +47,17 @@ AirSimController::AirSimController(_Str __in, int __port)
 AirSimController::~AirSimController() {
     KeyboardInput::getInstance()->stopCallback();
     if (__i_ == _In::RPC) __srv_->stop();
+    std::cout.rdbuf(buf_bak);
 }
 
+
+void AirSimController::hover(_Arg& __str) {
+    switch (__str.size()) {
+        case 1: airlib_controller::hover(); break;
+        case 2: airlib_controller::hover(atoi(__str[1].c_str())); break;
+        default: std::cout << "Invalid arguments" << "\n" << "\n";
+    }
+}
 
 void AirSimController::arm(_Arg &__str) {
     airlib_controller::arm();
@@ -141,7 +166,8 @@ void AirSimController::move(_Arg &__str) {
                                              to_float(__str[3])),
                                              to_float(__str[4]),
                                              atoi(__str[5].c_str()),
-                                             atoi(__str[6].c_str())); break;
+                                             to_float(__str[6]), false); 
+                                            wait(to_float(__str[4]), false); break;
         default: std::cout << "Invalid arguments\n\n";
     }
 }
@@ -262,6 +288,9 @@ void AirSimController::__background_function() {
             is_connected()) {
             airlib_controller::reset();
             __kb->reset();
+            __r_l.lock();
+            __r_.store(true);
+            __r_l.unlock();
         }
         thread_sleep(10);
     }
@@ -273,4 +302,15 @@ _Rpc::_Str AirSimController::__message_callback(_Str &__msg) {
     _Str __ret = __l_[1].second.get();
     reset_promise(1);
     return __ret;
+}
+
+bool AirSimController::__background_callback() {
+    __r_l.lock();
+    if (__r_.load()) {
+        __r_.store(false);
+        __r_l.unlock();
+        return true;
+    }
+    __r_l.unlock();
+    return false;
 }
